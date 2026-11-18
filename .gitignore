@@ -1,0 +1,18 @@
+# Buildroot build output
+output/
+build/
+dl/
+
+# Local Buildroot configuration
+.config
+.config.old
+defconfig
+
+# Generated images and binaries
+*.img
+*.bin
+*.elf
+
+# Temporary files
+*.tmp
+*~
