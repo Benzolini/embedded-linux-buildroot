@@ -106,6 +106,39 @@ The following milestones have been completed:
 - [x] GPIO17 automatically exported by the application at startup
 - [x] Updated Buildroot image successfully built, flashed and tested on the Raspberry Pi
 - [x] LED blinking application verified to work immediately after boot without manual GPIO export
+- [x] BusyBox init service created to automatically start the GPIO application during boot
+- [x] GPIO service can be stopped, started and restarted using its init script
+- [ ] Replace the deprecated sysfs GPIO interface with the modern Linux GPIO character device API using libgpiod 1.6.5
+
+## GPIO Startup Service
+
+A BusyBox init service was added to start the GPIO application automatically during system boot.
+
+The init script is installed at:
+
+`/etc/init.d/S99gpio-test`
+
+The service starts the application in the background with a default blink interval of 500 ms.
+
+The service can be controlled from the Raspberry Pi shell:
+
+```sh
+/etc/init.d/S99gpio-test start
+/etc/init.d/S99gpio-test stop
+/etc/init.d/S99gpio-test restart
+```
+
+The service is executed automatically during boot by the BusyBox init system.
+
+## Next Step: Modern GPIO Interface
+
+The current GPIO application uses the legacy Linux sysfs GPIO interface.
+
+The next development step is to replace sysfs with the Linux GPIO character device API using **libgpiod 1.6.5**.
+
+This will allow the application to access GPIO lines through `/dev/gpiochip0` instead of the deprecated sysfs interface.
+
+This migration has not yet been implemented.
 
 ## Learning Journey
 
