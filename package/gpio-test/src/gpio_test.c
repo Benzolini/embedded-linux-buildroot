@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <gpiod.h>
 
-#define GPIO_PATH "/sys/class/gpio/gpio529"
+#define GPIO_CHIP "/dev/gpiochip0"
+#define GPIO_OFFSET 17
 
 volatile sig_atomic_t running = 1;
 
@@ -12,52 +14,16 @@ void handle_signal(int signal)
     running = 0;
 }
 
-int write_gpio(const char *filename, const char *value)
-{
-    char path[128];
-
-    snprintf(path, sizeof(path), "%s/%s", GPIO_PATH, filename);
-
-    FILE *fp = fopen(path, "w");
-
-    if (fp == NULL) {
-        perror(path);
-        return -1;
-    }
-
-    fprintf(fp, "%s", value);
-    fclose(fp);
-
-    return 0;
-}
-
-int export_gpio(void)
-{
-    /* GPIO ist bereits exportiert */
-    if (access(GPIO_PATH, F_OK) == 0)
-        return 0;
-
-    FILE *fp = fopen("/sys/class/gpio/export", "w");
-
-    if (fp == NULL) {
-        perror("GPIO export");
-        return -1;
-    }
-
-    fprintf(fp, "529");
-
-    if (fclose(fp) != 0) {
-        perror("GPIO export");
-        return -1;
-    }
-
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
     int interval = 1000;
+    int exit_status = 0;
+    int line_requested = 0;
 
+    struct gpiod_chip *chip = NULL;
+    struct gpiod_line *line = NULL;
+
+    /* Blinkintervall einlesen */
     if (argc == 2) {
         interval = atoi(argv[1]);
     }
@@ -68,36 +34,78 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    /* GPIO-Chip öffnen */
+    chip = gpiod_chip_open(GPIO_CHIP);
+
+    if (chip == NULL) {
+        perror("GPIO chip open");
+        return 1;
+    }
+
+    /* GPIO17 auswählen */
+    line = gpiod_chip_get_line(chip, GPIO_OFFSET);
+
+    if (line == NULL) {
+        perror("GPIO line get");
+        exit_status = 1;
+        goto cleanup;
+    }
+
+    /* GPIO17 als Ausgang reservieren, initial LOW */
+    if (gpiod_line_request_output(line, "gpio-test", 0) < 0) {
+        perror("GPIO line request");
+        exit_status = 1;
+        goto cleanup;
+    }
+
+    line_requested = 1;
+
+    /* CTRL+C behandeln */
     signal(SIGINT, handle_signal);
 
     printf("GPIO17 LED gestartet\n");
     printf("Blinkintervall: %d ms\n", interval);
 
-    if (export_gpio() < 0)
-	return 1;
-
-    if (write_gpio("direction", "out") < 0)
-        return 1;
-
+    /* Endlosschleife */
     while (running) {
 
-        if (write_gpio("value", "1") < 0)
+        if (gpiod_line_set_value(line, 1) < 0) {
+            perror("GPIO HIGH");
+            exit_status = 1;
             break;
+        }
 
-        usleep(interval * 1000);
+        usleep((useconds_t)interval * 1000U);
 
         if (!running)
             break;
 
-        if (write_gpio("value", "0") < 0)
+        if (gpiod_line_set_value(line, 0) < 0) {
+            perror("GPIO LOW");
+            exit_status = 1;
             break;
+        }
 
-        usleep(interval * 1000);
+        usleep((useconds_t)interval * 1000U);
     }
-
-    write_gpio("value", "0");
 
     printf("\nProgramm beendet. GPIO17 = LOW\n");
 
-    return 0;
+cleanup:
+
+    /* GPIO auf LOW setzen und Leitung freigeben */
+    if (line_requested) {
+        if (gpiod_line_set_value(line, 0) < 0) {
+            perror("GPIO cleanup");
+            exit_status = 1;
+        }
+
+        gpiod_line_release(line);
+    }
+
+    /* GPIO-Chip schliessen */
+    if (chip != NULL)
+        gpiod_chip_close(chip);
+
+    return exit_status;
 }
