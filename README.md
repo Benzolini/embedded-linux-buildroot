@@ -87,16 +87,20 @@ The Buildroot source tree is located at:
 ~/embedded-linux/buildroot-2026.08.1
 ```
 
-## Status
+## Current Status
 
-- [x] Development environment established
-- [x] Buildroot configured
-- [x] Initial Linux image built successfully
-- [ ] Image flashed to Raspberry Pi
-- [ ] First boot
-- [ ] SSH access
-- [ ] GPIO experiments
-- [ ] Custom application integration
+The following milestones have been completed:
+
+- [x] Buildroot 2026.08.1 configured for Raspberry Pi B+ (BCM2835 / ARMv6)
+- [x] Buildroot image successfully built
+- [x] Image flashed to microSD card
+- [x] Raspberry Pi successfully booted with the custom Buildroot image
+- [x] Ethernet networking configured via DHCP
+- [x] SSH access configured and tested using Dropbear
+- [x] GPIO17 tested using the Linux sysfs GPIO interface
+- [x] Custom C application cross-compiled for ARM
+- [x] LED blinking application tested successfully on the Raspberry Pi
+- [x] Configurable blink interval and clean shutdown using CTRL+C implemented
 
 ## Learning Journey
 
