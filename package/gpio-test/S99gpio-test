@@ -1,0 +1,31 @@
+
+#!/bin/sh
+
+DAEMON=/usr/bin/gpio_test
+PIDFILE=/var/run/gpio_test.pid
+
+case "$1" in
+    start)
+        printf "Starting gpio-test: "
+        start-stop-daemon -S -b -m -p "$PIDFILE" -x "$DAEMON" -- 500
+        echo "OK"
+        ;;
+
+    stop)
+        printf "Stopping gpio-test: "
+	start-stop-daemon -K -s INT -p "$PIDFILE"
+        echo "OK"
+        ;;
+
+    restart)
+        "$0" stop
+        "$0" start
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

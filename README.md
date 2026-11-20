@@ -112,3 +112,94 @@ The following milestones have been completed:
 This repository documents the development process and configuration of the Embedded Linux system.
 
 Buildroot is the first build system used in this project. A separate repository will be created later for the Yocto Project implementation.
+
+## Building the System
+
+### Requirements
+
+- Ubuntu / WSL2
+- Buildroot 2026.08.1
+- Raspberry Pi B+ (BCM2835 / ARMv6)
+- Raspberry Pi Imager
+- microSD card
+
+### Initial Build Configuration
+
+Navigate to the Buildroot source directory:
+
+```bash
+cd ~/embedded-linux/buildroot-2026.08.1
+```
+
+Load the project-specific Buildroot configuration:
+
+```bash
+make BR2_EXTERNAL=$HOME/embedded-linux/projects/raspberrypi-bplus raspberrypi_bplus_defconfig
+```
+
+### Build the System
+
+Build the complete system:
+
+```bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+make BR2_EXTERNAL=$HOME/embedded-linux/projects/raspberrypi-bplus
+```
+
+The clean PATH is required in this WSL2 environment because inherited Windows PATH entries may contain spaces.
+
+The generated SD card image is located at:
+
+```text
+output/images/sdcard.img
+```
+
+### Rebuilding the GPIO Test Package
+
+After modifying the GPIO application or its package files, clean the package first:
+
+```bash
+make BR2_EXTERNAL=$HOME/embedded-linux/projects/raspberrypi-bplus gpio-test-dirclean
+```
+
+Then rebuild the system:
+
+```bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+make BR2_EXTERNAL=$HOME/embedded-linux/projects/raspberrypi-bplus
+```
+
+### Flashing the Image
+
+1. Copy `output/images/sdcard.img` to a Windows-accessible directory.
+2. Open Raspberry Pi Imager.
+3. Select the generated image.
+4. Select the Raspberry Pi's microSD card.
+5. Flash the image.
+
+**Warning:** Flashing overwrites the selected SD card.
+
+## GPIO Test Application and Init Service
+
+The project includes a custom C application integrated as a Buildroot package.
+
+- Application: `/usr/bin/gpio_test`
+- Init script: `/etc/init.d/S99gpio-test`
+- Default blink interval: 500 ms
+- GPIO: BCM GPIO17 (physical pin 11)
+
+The application automatically exports GPIO17 and configures it as an output.
+
+The BusyBox init system executes the `S99gpio-test` script during system startup. This starts the LED blinking automatically.
+
+### Controlling the Service
+
+Run these commands on the Raspberry Pi via SSH:
+
+```bash
+/etc/init.d/S99gpio-test start
+/etc/init.d/S99gpio-test stop
+/etc/init.d/S99gpio-test restart
+```
+
+The service runs the application in the background. Stopping it sends SIGINT, allowing the application to terminate cleanly and set GPIO17 to LOW.
