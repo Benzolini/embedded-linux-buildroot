@@ -1,0 +1,5 @@
+menu "Raspberry Pi B+ external packages"
+
+source "$BR2_EXTERNAL_RASPBERRYPI_BPLUS_PATH/package/gpio-test/Config.in"
+
+endmenu

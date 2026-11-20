@@ -87,7 +87,7 @@ The Buildroot source tree is located at:
 ~/embedded-linux/buildroot-2026.08.1
 ```
 
-## Current Status
+## Status
 
 The following milestones have been completed:
 
@@ -101,6 +101,11 @@ The following milestones have been completed:
 - [x] Custom C application cross-compiled for ARM
 - [x] LED blinking application tested successfully on the Raspberry Pi
 - [x] Configurable blink interval and clean shutdown using CTRL+C implemented
+- [x] Custom application integrated as a Buildroot package using BR2_EXTERNAL
+- [x] Application automatically installed to `/usr/bin/gpio_test` in the target root filesystem
+- [x] GPIO17 automatically exported by the application at startup
+- [x] Updated Buildroot image successfully built, flashed and tested on the Raspberry Pi
+- [x] LED blinking application verified to work immediately after boot without manual GPIO export
 
 ## Learning Journey
 

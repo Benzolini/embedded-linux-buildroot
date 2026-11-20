@@ -1,0 +1,4 @@
+config BR2_PACKAGE_GPIO_TEST
+    bool "gpio-test"
+    help
+      Simple GPIO17 LED blinking application for Raspberry Pi B+.
