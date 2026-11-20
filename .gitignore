@@ -16,3 +16,6 @@ defconfig
 # Temporary files
 *.tmp
 *~
+
+# Application file
+/app/gpio_test
